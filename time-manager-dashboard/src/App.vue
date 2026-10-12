@@ -51,7 +51,9 @@ const TOUR_STEPS = [
 
 export default {
   name: 'App',
-
+  /* Quelle est la valeur obtenue à partir de mes données ? computed.
+     Quelle action effectuer quand cette fonction est appelée ? methods.
+     Quelle action déclencher quand une donnée change ?  watch.*/
   components: { AppSidebar, LoginScreen, OnboardingTour, RouterView, ToastStack, User, WorkingTimes },
 
   data() {
