@@ -41,11 +41,7 @@ nav:
   - Dépannage: FAQ.md
   - Glossaire: GLOSSAIRE.md
   - Références:
-      - Guide API historique: API.md
-      - Docker et environnements: DOCKER_ENVIRONNEMENTS.md
       - Contrat organisations: CONTRAT_BACKEND_ORGANISATIONS.md
-      - Recette des validations: RECETTE_VALIDATIONS.md
-      - Workflows de déploiement: DEPLOIEMENT_WORKFLOWS.md
 
 markdown_extensions:
   - admonition

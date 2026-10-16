@@ -619,14 +619,14 @@ Hors préfixe /api, GET `/swaggerui` sert du HTML. `/dev/dashboard` et `/dev/mai
 | application.ex | Supervise Repo, PubSub, télémétrie, DNSCluster, RateLimiter et Endpoint avec stratégie one_for_one. |
 | entrypoint.sh | Attend PostgreSQL, lance ecto.create, ecto.migrate, seeds, puis phx.server. |
 
-Le Dockerfile sépare les cibles `development` et `production`. La cible publiée compile et démarre avec **MIX_ENV=prod**, sans routes ni dépendances réservées au développement. Le démarrage refuse notamment un `JWT_SECRET` absent, trop court ou connu publiquement. Ce déploiement utilise encore Mix plutôt qu'une release OTP ; voir [Docker et environnements](DOCKER_ENVIRONNEMENTS.md).
+Le Dockerfile sépare les cibles `development` et `production`. La cible publiée compile et démarre avec **MIX_ENV=prod**, sans routes ni dépendances réservées au développement. Le démarrage refuse notamment un `JWT_SECRET` absent, trop court ou connu publiquement. Ce déploiement utilise encore Mix plutôt qu'une release OTP ; voir [les images Docker](DEVOPS.md#images-docker).
 
 !!! danger "Dépendance signalée vulnérable"
     Pendant la construction isolée du 15 octobre 2026, Hex a signalé deux alertes sur `bandit 1.12.5` : `CVE-2026-105659` / `GHSA-69m6-wcv4-rwcf` pour un déni de service HTTP/2, et `CVE-2026-105660` / `GHSA-v53v-9hvg-37jf` pour une autorité de requête HTTP/1 non validée. Vérifier la version corrigée publiée, mettre à jour `mix.lock` et rejouer tous les tests avant un déploiement.
 
 seeds.exs insère les rôles et, si ADMIN_EMAIL/ADMIN_PASSWORD sont présents, un admin **sans organisation**. Il ne modifie pas un compte existant et ne crée pas Gotham City. Le provisionnement/rattachement Gotham est décrit dans le [contrat d'organisation](CONTRAT_BACKEND_ORGANISATIONS.md#10-provisionnement-manuel-et-verrouillage-de-gotham-city) et le script racine scripts/recreate_gotham_admin.sh.
 
-Les trois migrations workforce du 12 octobre ajoutent les tables métier, l'audit des comptes historiques et payable_hours. Ecto suit les versions appliquées et ne les rejoue pas. Voir le [guide de déploiement](DEPLOIEMENT_WORKFLOWS.md) pour la base cible.
+Les trois migrations workforce du 12 octobre ajoutent les tables métier, l'audit des comptes historiques et payable_hours. Ecto suit les versions appliquées et ne les rejoue pas. Voir [la mise à jour et les migrations](DEVOPS.md#mise-a-jour-et-migrations) pour la base cible.
 
 Depuis time_manager/, avec PostgreSQL disponible :
 
@@ -673,7 +673,7 @@ Exemple : `{"email":"agent@example.test","code":"01234567","password":"<nouvelle
 
 `Preferences` accepte désormais `language: "fr" | "en"` (défaut fr), enregistré avec les autres préférences. La traduction se fait dans Vue, les textes libres restent dans leur langue d’origine. Notifications : statut all/read/unread, pagination de 50, compteur personnel indépendant de la pagination.
 
-Le [contrat, section 14](CONTRAT_BACKEND_ORGANISATIONS.md#14-validations-recuperation-et-accessibilite-13-octobre-2026) détaille les formats, limites et migrations. La [recette](RECETTE_VALIDATIONS.md) couvre ces parcours.
+Le [contrat, section 14](CONTRAT_BACKEND_ORGANISATIONS.md#14-validations-recuperation-et-accessibilite-13-octobre-2026) détaille les formats, limites et migrations. Les [contrôles après mise à jour](DEVOPS.md#controles-apres-mise-a-jour) couvrent ces parcours ; les commandes de tests figurent dans [Installation](INSTALLATION.md#tests-et-builds).
 
 ### Fusion du 14 octobre : adhésion et limites de session
 

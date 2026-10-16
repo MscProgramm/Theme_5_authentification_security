@@ -150,6 +150,9 @@ Ces protections réduisent les risques connus. Elles ne remplacent pas une revue
 | Construire, publier, déployer et exploiter | [DevOps](DEVOPS.md) |
 | Résoudre une panne | [Dépannage](FAQ.md) |
 | Comprendre le vocabulaire | [Glossaire](GLOSSAIRE.md) |
+| Retrouver les formats détaillés et l'historique d'intégration | [Contrat organisations](CONTRAT_BACKEND_ORGANISATIONS.md) |
+
+Le catalogue API actuel est regroupé dans `BACKEND.md`. Les consignes Docker et de mise à jour sont regroupées dans `INSTALLATION.md` et `DEVOPS.md`, pour éviter plusieurs procédures concurrentes.
 
 ## Analyse critique priorisée
 

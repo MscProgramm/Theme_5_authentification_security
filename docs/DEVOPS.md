@@ -143,6 +143,55 @@ Le workflow `.github/workflows/docs.yml` construit MkDocs en mode strict et publ
 
 ## Exploitation locale ou isolée
 
+### Mise à jour et migrations
+
+Mettre à jour le frontend et le backend ensemble. Un nouveau build Vue ne crée pas les endpoints ni les tables attendus. Les comptes simulés, locaux et distants appartiennent à des environnements distincts.
+
+Avant une mise à jour :
+
+1. exécuter les [tests et builds](INSTALLATION.md#tests-et-builds), notamment le backend isolé non exécuté par le stage Travis actuel ;
+2. sauvegarder la base cible et vérifier que la sauvegarde est exploitable ;
+3. publier les images du même commit et renseigner leur SHA commun dans `IMAGE_TAG` ;
+4. conserver la base et le volume existants, puis appliquer la procédure de déploiement autorisée décrite dans [le pipeline](#pipeline-travis) ;
+5. vérifier les logs et les parcours ci-dessous.
+
+L'entrypoint backend applique toutes les migrations en attente avant de lancer Phoenix. Pour une installation hors Docker, exécuter `mix ecto.migrate` avec les variables de la **base cible**, puis redémarrer le backend et publier le frontend correspondant. Si le backend est déjà lancé, ne pas démarrer une seconde instance pour appliquer les migrations.
+
+Les migrations introduites avec les workflows comprennent :
+
+| Migration | Rôle |
+|---|---|
+| `20261012143436_add_workforce_workflows.exs` | Règles, permissions, feuilles, corrections, planning, absences, paie et notifications. |
+| `20261012145131_allow_legacy_audit_events.exs` | Audit des comptes historiques sans organisation. |
+| `20261012164950_add_absence_payable_hours.exs` | Heures rémunérables confirmées des absences. |
+| `20261013100000_add_join_request_email_verification.exs` | Vérification email des demandes d'adhésion. |
+| `20261013143422_add_password_recovery_and_session_version.exs` | Récupération du mot de passe et révocation des sessions antérieures. |
+| `20261013203307_remove_managers_from_own_team_memberships.exs` | Nettoyage des appartenances redondantes du manager à sa propre équipe, sans supprimer ses heures ni son compte. |
+| `20261014115921_allow_join_request_verification_without_user.exs` | Codes de demande d'adhésion avant la création d'un utilisateur. |
+
+Ecto suit les versions déjà appliquées : utiliser l'ensemble des migrations du commit, sans sélectionner seulement celles de ce tableau. La restauration des onglets ne nécessite pas de migration supplémentaire, mais exige un backend compatible avec `X-Session-Restore: 1` et `data.csrf_token`.
+
+Ne pas utiliser `mix ecto.reset`, supprimer le volume PostgreSQL ou recréer les comptes pour une simple mise à jour. Le rollback du nettoyage des appartenances ne rétablit pas les liens supprimés ; vérifier la compatibilité des migrations avant tout retour à une ancienne image.
+
+### Contrôles après mise à jour
+
+Effectuer les essais avec des comptes et données de recette, dans l'environnement autorisé. Le catalogue [Backend et API](BACKEND.md#4-contrats-des-endpoints-backend) précise les réponses attendues.
+
+| Parcours | Vérification attendue |
+|---|---|
+| API installée | `/api/openapi` expose les nouveaux domaines ; `/api/workforce/context` répond `401` sans session plutôt qu'une route inexistante. |
+| Connexion et onglets | Un onglet neuf sur `/profil` restaure le même compte ; une reconnexion au même compte reste utilisable ; la déconnexion se propage. |
+| Admission | Vérifier l'email, voir la demande depuis le bon administrateur, accepter/refuser et contrôler le statut. Un refus ne crée pas de compte actif. |
+| Permissions | Un employé ne lit pas les heures d'un collègue ; un manager reste dans son périmètre et ne valide pas sa propre correction. |
+| Pointage et correction | Enregistrer arrivée/pause/reprise/départ, recharger et vérifier les durées. Une proposition ne change les heures qu'après acceptation autorisée. |
+| Feuilles et planning | Vérifier validation/réouverture, création/publication des gardes et visibilité du planning publié pour l'employé. |
+| Échanges et absences | Vérifier consentement/décision, état final et, si nécessaire, heures rémunérables confirmées. |
+| Relevé et notifications | Contrôler le mois, les catégories, le CSV, la lecture des notifications et le compteur personnel. |
+| Mot de passe oublié | Recevoir le code, changer le mot de passe, vérifier le refus de l'ancien mot de passe et des anciennes sessions, puis l'email d'alerte. |
+| Langue et voix | Vérifier français/anglais ; tester le guide et la lecture dans un navigateur compatible après activation de l'option. |
+
+En développement, les emails se consultent dans Mailpit. La configuration serveur actuelle utilise Resend : son expéditeur doit être autorisé et ses variables doivent être présentes dans l'environnement privé. Un test avec l'adaptateur Swoosh Test ne prouve pas la réception d'un email réel. En cas d'échec d'envoi après acceptation d'une adhésion, relire l'état avant de recommencer : le compte peut déjà avoir été créé.
+
 ### État et logs
 
 ```bash
